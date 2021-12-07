@@ -22,13 +22,13 @@ The first CNN is called a "disparity estimator", and it aims to roughly estimate
 <table>
   <tr>
     <td>
-      <video width="361" height="251" controls autoplay muted>
+      <video width="361" height="251" controls loop autoplay muted>
         <source src="dispfeat33.mp4" type="video/mp4"/> 
       <!-- Your browser does not support the video tag. -->
       </video>
     </td>
     <td>
-      <video width="361" height="251" controls autoplay muted>
+      <video width="361" height="251" controls loop autoplay muted>
         <source src="dstdev33.mp4" type="video/mp4"/> 
       <!-- Your browser does not support the video tag. -->
       </video>
@@ -85,13 +85,13 @@ We also show results circling around the edges for several more light fields (Fl
 <table>
   <tr>
     <td>
-      <video width="361" height="251" controls autoplay muted>
+      <video width="361" height="251" controls loop autoplay muted>
         <source src="flfinal.mp4" type="video/mp4"/> 
       <!-- Your browser does not support the video tag. -->
       </video>
     </td>
     <td>
-      <video width="361" height="251" controls autoplay muted>
+      <video width="361" height="251" controls loop autoplay muted>
         <source src="shfinal.mp4" type="video/mp4"/> 
       <!-- Your browser does not support the video tag. -->
       </video>
