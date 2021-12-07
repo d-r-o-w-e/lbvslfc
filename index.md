@@ -82,17 +82,22 @@ Your browser does not support the video tag.
 
 We also show results circling around the edges for several more light fields (Flower1.png, Seahorse.png).
 
-Interpolated Video
-<!-- <video width="541" height="376" controls>
-  <source src="movie.mp4" type="video/mp4"/> 
-Your browser does not support the video tag.
-</video> -->
-
-Interpolated Video
-<!-- <video width="541" height="376" controls>
-  <source src="movie.mp4" type="video/mp4"/> 
-Your browser does not support the video tag.
-</video> -->
+<table>
+  <tr>
+    <td>
+      <video width="361" height="251" controls autoplay muted>
+        <source src="flfinal.mp4" type="video/mp4"/> 
+      <!-- Your browser does not support the video tag. -->
+      </video>
+    </td>
+    <td>
+      <video width="361" height="251" controls autoplay muted>
+        <source src="shfinal.mp4" type="video/mp4"/> 
+      <!-- Your browser does not support the video tag. -->
+      </video>
+    </td>
+  </tr>
+</table>
 
 In the original paper, there are also decent results for extrapolated views, though these tend to have lots of artifacts around occlusion boundaries.  Here, I show some extrapolated results for my implementation of the network.
 
