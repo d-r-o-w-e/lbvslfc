@@ -1,2 +1,14 @@
-<h1> CSE 274 Final Project </h1>
-<h2> by Dylan Rowe </h2>
+<h1> Overview of the Original Paper </h1>
+
+This project is based on the paper <a href="https://cseweb.ucsd.edu//~viscomp/classes/cse274/fa21/readings/a193-kalantari.pdf">Learning-Based View Synthesis for Light Field Cameras</a> by Kalantari et al.  In this paper, the authors use a 2-stage neural network to synthesize images from non-input view directions in a light field camera.  In theory, this work could be used to increase the spatial resolution of consumer light field cameras while retaining the same angular resolution, by simply synthesizing the intermediate views.  Below, we give a brief synopsis of how this paper works.
+
+<h2> Architecture </h2>
+The neural network architecture in this paper consists of two CNNs, each with 4 convolutional layers and no fully-connected layers.  The network takes in the 4 corner views of an 8x8 angular resolution grid, as well as the (u, v) coordinates of the desired input view.  The full network learns to directly synthesize an image from the desired input view.
+
+<h3> Disparity Estimator </h3>
+The first CNN is called a "disparity estimator", and it aims to roughly estimate the disparity (a measure of the "motion" or "distance" between pixels in two camera views) as a 1-channel image.  Its input is 200 image features which we manually create before applying the network.  These features are intended to help the network see the disparity at each point in the image.  First, we <i>backward warp</i> the 4 input images (converted to grayscale); this step shifts each of the pixels in each input image by a predefined disparity level $'d_l'$.  Thus we find a backwarped image $'\bar{L}_{p_i}^{d_l}(s) = L_{p_i}\[s + (p_i - q)d_l\]'$, where $'p_i'$ and $'q'$ are the (u, v) coordinates of the input and target views, respectively.  We perform this for each of the 4 input views, and warp using 100 predefined disparity levels between -21 and 21.  Then, 100 features are found by averaging over the 4 views at each disparity level, and 100 features are found by taking the standard deviation of the 4 views at each disparity level.  We stack the 200 features into a 100 x h x w tensor.
+
+<img/>
+
+<h3> Color Predictor </h3>
+The color predictor network uses the disparity estimator output, the 4 input images, and the (u, v) coordinates of the target view to determine the 3-channel output view.  To create the features for this network, we use the disparity estimator output to <i>forward warp</i> the 4 (color) input views.  This is given by the equation $'\bar{L}_{p_i}(s) = L_{p_i}\[s + (p_i - q)D_q(s)\]'$, where $'D_q(s)'$ gives the disparity estimator's output at pixel $'s'$.  The warped views are then concatenated with the (u, v) target view coordinates as well as the disparity output, giving a 3*4 + 2 + 1 = 15 channel input.  The layers in this step are the same as in the disparity estimator, but the input layer takes in 15 channels rather than 200.
