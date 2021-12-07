@@ -14,13 +14,25 @@ Below, we give a brief synopsis of how this paper works.
 <h2> Architecture </h2>
 The neural network architecture in this paper consists of two CNNs, each with 4 convolutional layers and no fully-connected layers.  The network takes in the 4 corner views of an 8x8 angular resolution grid, as well as the \\( (u, v) \\) coordinates of the desired input view.  The full network learns to directly synthesize an image from the desired input view.
 
-<h3> Disparity Estimator </h3>
-The first CNN is called a "disparity estimator", and it aims to roughly estimate the disparity (a measure of the "motion" or "distance" between pixels in two camera views) as a 1-channel image.  Its input is 200 image features which we manually create before applying the network.  These features are intended to help the network see the disparity at each point in the image.  First, we <i>backward warp</i> the 4 input images (converted to grayscale); this step shifts each of the pixels in each input image by a predefined disparity level \\( d_l \\).  Thus we find a backwarped image \\( \bar{L}\_{p\_i}^{d\_l}(s) = L\_{p_i}\[s + (p_i - q)d_l\] \\), where \\(p_i\\) and \\( q \\) are the \\( (u, v) \\) coordinates of the input and target views, respectively.  We perform this for each of the 4 input views, and warp using 100 predefined disparity levels between -21 and 21.  Then, 100 features are found by averaging over the 4 views at each disparity level, and 100 features are found by taking the standard deviation of the 4 views at each disparity level.  We stack the 200 features into a 100 x h x w tensor.
+<img src="viewlayout.png"/>
 
-<img/>
+<h3> Disparity Estimator </h3>
+The first CNN is called a "disparity estimator", and it aims to roughly estimate the disparity (a measure of the "motion" or "distance" between pixels in two camera views) as a 1-channel image.  Its input is 200 image features which we manually create before applying the network.  These features are intended to help the network see the disparity at each point in the image.  First, we <i>backward warp</i> the 4 input images (converted to grayscale); this step shifts each of the pixels in each input image by a predefined disparity level \\( d_l \\).  Thus we find a backwarped image \\( \bar{L}\_{p\_i}^{d\_l}(s) = L\_{p_i}\[s + (p_i - q)d_l\] \\), where \\(p_i\\) and \\( q \\) are the \\( (u, v) \\) coordinates of the input and target views, respectively.  We perform this for each of the 4 input views, and warp using 100 predefined disparity levels between -21 and 21.  Then, 100 features are found by averaging over the 4 views at each disparity level, and 100 features are found by taking the standard deviation of the 4 views at each disparity level.  We stack the 200 features into a 100 x h x w tensor.  Below, we show the disparity mean and standard deviation features for each disparity level.
+
+<video width="541" height="376" controls>
+  <source src="dispfeat33.mp4" type="video/mp4"/> 
+<!-- Your browser does not support the video tag. -->
+</video>
+
+<video width="541" height="376" controls>
+  <source src="dstdev33.mp4" type="video/mp4"/> 
+<!-- Your browser does not support the video tag. -->
+</video>
 
 <h3> Color Predictor </h3>
-The color predictor network uses the disparity estimator output, the 4 input images, and the \\( (u, v) \\) coordinates of the target view to determine the 3-channel output view.  To create the features for this network, we use the disparity estimator output to <i>forward warp</i> the 4 (color) input views.  This is given by the equation \\( \bar{L}\_{p_i}(s) = L_{p_i}\[s + (p_i - q)D_q(s)\] \\), where \\( D_q(s) \\) gives the disparity estimator's output at pixel \\(s\\).  The warped views are then concatenated with the \\( (u, v) \\) target view coordinates as well as the disparity output, giving a \\( 3*4 + 2 + 1 = 15 \\) channel input.  The layers in this step are the same as in the disparity estimator, but the input layer takes in 15 channels rather than 200.
+The color predictor network uses the disparity estimator output, the 4 input images, and the \\( (u, v) \\) coordinates of the target view to determine the 3-channel output view.  To create the features for this network, we use the disparity estimator output to <i>forward warp</i> the 4 (color) input views.  This is given by the equation \\( \bar{L}\_{p_i}(s) = L_{p_i}\[s + (p_i - q)D_q(s)\] \\), where \\( D_q(s) \\) gives the disparity estimator's output at pixel \\(s\\).  The warped views are then concatenated with the \\( (u, v) \\) target view coordinates as well as the disparity output, giving a \\( 3*4 + 2 + 1 = 15 \\) channel input.  The layers in this step are the same as in the disparity estimator, but the input layer takes in 15 channels rather than 200.  Putting these details together, we show the final network:
+
+<img src="network.png"/>
 
 <h2> Other Paper Details </h2>
 In the original paper, training occurs on 60x60 patches, with batch size 20.  They use the L2 loss, and use ADAM to update the weights of the network.  Additionally, since the warp operations will likely try to read values between pixels if implemented naively, they use bicubic interpolation to sample the all images that are warped (forward or backward).  Backpropagation through the bicubic interpolation step during the forward warp is performed numerically.
@@ -43,7 +55,9 @@ My implementation differed from the original paper slightly, as it used differen
 </ul>
 
 <h2> Training </h2>
-I trained for a few days, until the network seemed to have reached its lowest test loss.  The train/test loss graphs are shown below.  Note that the scales are different -- for the training loss, I did not normalize by the number of samples, but the curve is nonetheless clear.
+I trained for a few days, until the network seemed to have reached its lowest test loss.  The train/test loss graphs are shown below.  Note that the scales are different -- for the training loss, I did not normalize by the number of samples, and the training loss is sampled more frequently than the test loss, but the progress of the curve is nonetheless clear.
+
+<img src="losses.png"/>
 
 <h2> Other Implementation Details </h2>
 In the results I presented in class, I mentioned that I was having issues with low saturation in my output images.  After a student commented that this could likely be a bug related to gamma correction, I looked at the paper authors' code to find out what type of tone correction I would have to apply.  The result is that my results were correct in my presentation, but needed to be gamma corrected by \\( \gamma = 1.5\\) and also saturation-scaled by 1.5.  Thus my images in this report are more color-correct and more highly-saturated than those from my presentation.  In addition, the images shown below are from versions of the network trained further than the images in the presentation, and thus there will likely be fewer artifacts overall.
