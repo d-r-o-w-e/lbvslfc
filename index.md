@@ -3,6 +3,13 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js" integrity="sha384-z1fJDqw8ZApjGO3/unPWUPsIymfsJmyrDVWC8Tv/a1HeOtGmkwNd/7xUS0Xcnvsx" crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
     onload="renderMathInElement(document.body);"></script>
+  <style type="text/css">
+.centerImage
+{
+ text-align:center;
+ display:block;
+}
+</style>
 </head>
 
 <h1> Introduction </h1>
@@ -14,7 +21,7 @@ Below, we give a brief synopsis of how this paper works.
 <h2> Architecture </h2>
 The neural network architecture in this paper consists of two CNNs, each with 4 convolutional layers and no fully-connected layers.  The network takes in the 4 corner views of an 8x8 angular resolution grid, as well as the \\( (u, v) \\) coordinates of the desired input view.  The full network learns to directly synthesize an image from the desired input view.
 
-<img src="viewlayout.png"/>
+<img src="viewlayout.png" style="height:50%;"/>
 
 <h3> Disparity Estimator </h3>
 The first CNN is called a "disparity estimator", and it aims to roughly estimate the disparity (a measure of the "motion" or "distance" between pixels in two camera views) as a 1-channel image.  Its input is 200 image features which we manually create before applying the network.  These features are intended to help the network see the disparity at each point in the image.  First, we <i>backward warp</i> the 4 input images (converted to grayscale); this step shifts each of the pixels in each input image by a predefined disparity level \\( d_l \\).  Thus we find a backwarped image \\( \bar{L}\_{p\_i}^{d\_l}(s) = L\_{p_i}\[s + (p_i - q)d_l\] \\), where \\(p_i\\) and \\( q \\) are the \\( (u, v) \\) coordinates of the input and target views, respectively.  We perform this for each of the 4 input views, and warp using 100 predefined disparity levels between -21 and 21.  Then, 100 features are found by averaging over the 4 views at each disparity level, and 100 features are found by taking the standard deviation of the 4 views at each disparity level.  We stack the 200 features into a 100 x h x w tensor.  Below, we show the disparity mean and standard deviation features for each disparity level.
@@ -75,10 +82,9 @@ For the forward and backward image warps, I utilized Pytorch's built-in meshgrid
 Finally, we examine the results.  First, here are the videos of my network cycling through every synthesized input view on the original Flower1.png light field image.
 
 Interpolated Video
-<!-- <video width="541" height="376" controls>
-  <source src="movie.mp4" type="video/mp4"/> 
-Your browser does not support the video tag.
-</video> -->
+<video width="541" height="376" controls loop autoplay muted>
+  <source src="flallfinal.mp4" type="video/mp4"/> 
+</video>
 
 We also show results circling around the edges for several more light fields (Flower1.png, Seahorse.png).
 
