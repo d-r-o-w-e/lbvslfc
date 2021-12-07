@@ -12,7 +12,7 @@ This project is based on the paper <a href="https://cseweb.ucsd.edu//~viscomp/cl
 Below, we give a brief synopsis of how this paper works.
 
 <h2> Architecture </h2>
-The neural network architecture in this paper consists of two CNNs, each with 4 convolutional layers and no fully-connected layers.  The network takes in the 4 corner views of an 8x8 angular resolution grid, as well as the (u, v) coordinates of the desired input view.  The full network learns to directly synthesize an image from the desired input view.
+The neural network architecture in this paper consists of two CNNs, each with 4 convolutional layers and no fully-connected layers.  The network takes in the 4 corner views of an 8x8 angular resolution grid, as well as the \\( (u, v) \\) coordinates of the desired input view.  The full network learns to directly synthesize an image from the desired input view.
 
 <h3> Disparity Estimator </h3>
 The first CNN is called a "disparity estimator", and it aims to roughly estimate the disparity (a measure of the "motion" or "distance" between pixels in two camera views) as a 1-channel image.  Its input is 200 image features which we manually create before applying the network.  These features are intended to help the network see the disparity at each point in the image.  First, we <i>backward warp</i> the 4 input images (converted to grayscale); this step shifts each of the pixels in each input image by a predefined disparity level \\( d_l \\).  Thus we find a backwarped image \\( \bar{L}\_{p\_i}^{d\_l}(s) = L\_{p_i}\[s + (p_i - q)d_l\] \\), where \\(p_i\\) and \\( q \\) are the \\( (u, v) \\) coordinates of the input and target views, respectively.  We perform this for each of the 4 input views, and warp using 100 predefined disparity levels between -21 and 21.  Then, 100 features are found by averaging over the 4 views at each disparity level, and 100 features are found by taking the standard deviation of the 4 views at each disparity level.  We stack the 200 features into a 100 x h x w tensor.
@@ -28,7 +28,7 @@ In the original paper, training occurs on 60x60 patches, with batch size 20.  Th
 <h1> My Implementation </h1>
 I implemented this paper for my final project in CSE 274 Fall 2021: "Sampling and Reconstruction of Visual Appearance: From Denoising to View Synthesis".  Here, I detail my implementation and how I got there.
 <h2> Early Steps </h2>
-Earlier in the quarter, I was interested in implementing <a href=<https://cseweb.ucsd.edu//~viscomp/classes/cse274/fa21/papers/nex-cvpr21.pdf">NeX: Real-time View Synthesis with Neural Basis Expansion </a> (Wizadwongsa et al. 2021).  However, after working on the implementation for a while, I realised that given my resources and time, it would be too complicated for me to implement and run in a single quarter.  I started looking at the other papers covered in this course, and briefly played with the idea of implementing one of the denoising papers, but decided to instead implement this learning-based view synthesis paper from 2016, as it fell within my interests and matched the resources available to me.  With that, I began implementing the network and finding solutions that allowed me to access school GPUs.
+Earlier in the quarter, I was interested in implementing <a href="https://cseweb.ucsd.edu//~viscomp/classes/cse274/fa21/papers/nex-cvpr21.pdf">NeX: Real-time View Synthesis with Neural Basis Expansion </a> (Wizadwongsa et al. 2021).  However, after working on the implementation for a while, I realised that given my resources and time, it would be too complicated for me to implement and run in a single quarter.  I started looking at the other papers covered in this course, and briefly played with the idea of implementing one of the denoising papers, but decided to instead implement this learning-based view synthesis paper from 2016, as it fell within my interests and matched the resources available to me.  With that, I began implementing the network and finding solutions that allowed me to access school GPUs.
 
 <h2> Frameworks / Resource Acquisition </h2>
 Our course gives access to UCSD DataHub, a service which allows students to connect to computers with decent GPUs and pre-installed machine learning environments.  Through this service, I was able to use a 2080 Ti, accessing it through an online Jupyter Notebook.  I used Pytorch (with CUDA) for implementation and training of the network, as well as numpy for a few transformations of the data that aren't required to be differentiable.  I also used cv2 (OpenCV) for writing my video results.  It took quite a while, but I was also able to convince the kind folks at DataHub to place my ~30gb worth of data on their computers, unzip the folders, and give me access to them.
@@ -46,13 +46,14 @@ My implementation differed from the original paper slightly, as it used differen
 I trained for a few days, until the network seemed to have reached its lowest test loss.  The train/test loss graphs are shown below.  Note that the scales are different -- for the training loss, I did not normalize by the number of samples, but the curve is nonetheless clear.
 
 <h2> Other Implementation Details </h2>
-In the results I presented in class, I mentioned that I was having issues with low saturation in my output images.  After a student commented that this could likely be a bug related to gamma correction, I looked at the paper authors' code to find out what type of tone correction I would have to apply.  The result is that my results were correct in my presentation, but needed to be gamma corrected by 1.5 and also saturation-boosted by 1.5.  Thus my images in this report are more color-correct and more highly-saturated than those from my presentation.  In addition, the images shown below are from versions of the network trained further than the images in the presentation, and thus there will likely be fewer artifacts overall.
+In the results I presented in class, I mentioned that I was having issues with low saturation in my output images.  After a student commented that this could likely be a bug related to gamma correction, I looked at the paper authors' code to find out what type of tone correction I would have to apply.  The result is that my results were correct in my presentation, but needed to be gamma corrected by \\( \gamma = 1.5\\) and also saturation-scaled by 1.5.  Thus my images in this report are more color-correct and more highly-saturated than those from my presentation.  In addition, the images shown below are from versions of the network trained further than the images in the presentation, and thus there will likely be fewer artifacts overall.
 
-For the forward and backward image warps, I utilized Pytorch's built-in meshgrid and grid_sample functions.  This allowed me to create a uniform grid of (x, y) points, add the necessary offsets to each coordinate based on the type of warp, and then sample the bicubic interpolated input images using the determined grid.  Additionally, since both of these are Pytorch functions, I was able to use Pytorch's default gradients for each of these functions, thus abstracting away the messy technical details involved in finding numerical gradients for bicubic interpolation.
+For the forward and backward image warps, I utilized Pytorch's built-in meshgrid and grid_sample functions.  This allowed me to create a uniform grid of \\( (x, y) \\) points, add the necessary offsets to each coordinate based on the type of warp, and then sample the bicubic interpolated input images using the determined grid.  Additionally, since both of these are Pytorch functions, I was able to use Pytorch's default gradients for each of these functions, thus abstracting away the messy technical details involved in finding numerical gradients for bicubic interpolation.
 
 <h1> Results </h1>
 Finally, we examine the results.  First, here are the videos of my network cycling through every synthesized input view on the original Flower1.png light field image.
 
+Interpolated Video
 <!-- <video width="541" height="376" controls>
   <source src="movie.mp4" type="video/mp4"/> 
 Your browser does not support the video tag.
@@ -60,11 +61,13 @@ Your browser does not support the video tag.
 
 We also show results circling around the edges for several more light fields (Flower1.png, Seahorse.png).
 
+Interpolated Video
 <!-- <video width="541" height="376" controls>
   <source src="movie.mp4" type="video/mp4"/> 
 Your browser does not support the video tag.
 </video> -->
 
+Interpolated Video
 <!-- <video width="541" height="376" controls>
   <source src="movie.mp4" type="video/mp4"/> 
 Your browser does not support the video tag.
@@ -72,11 +75,13 @@ Your browser does not support the video tag.
 
 In the original paper, there are also decent results for extrapolated views, though these tend to have lots of artifacts around occlusion boundaries.  Here, I show some extrapolated results for my implementation of the network.
 
+Extrapolated Video
 <!-- <video width="541" height="376" controls>
   <source src="movie.mp4" type="video/mp4"/> 
 Your browser does not support the video tag.
 </video> -->
 
+Extrapolated Video
 <!-- <video width="541" height="376" controls>
   <source src="movie.mp4" type="video/mp4"/> 
 Your browser does not support the video tag.
@@ -84,9 +89,11 @@ Your browser does not support the video tag.
 
 Finally, I show results for images taken on a cellphone.  Since the original light field camera has a very small baseline and the views are very well-calibrated, it is clear that using cellphone images will not get perfect results on a network trained on the light field images.  However, the results still retain some quailty, and it is nonetheless interesting that one can synthesize these views at this quality from cellphone images.
 
+Phone Image Video
 <!-- <video width="541" height="376" controls>
   <source src="movie.mp4" type="video/mp4"/> 
 Your browser does not support the video tag.
 </video> -->
 
 <h2> Conclusion </h2>
+I had a fun time implementing this paper, and I learned quite a bit about view synthesis and neural network implementation.  I am proud of my network's results, especially considering the storage/memory/execution limitations imposed by DataHub.
