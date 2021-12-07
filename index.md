@@ -1,6 +1,12 @@
-<h1> Overview of the Original Paper </h1>
+<head><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.css" integrity="sha384-yFRtMMDnQtDRO8rLpMIKrtPCD5jdktao2TV19YiZYWMDkUR5GQZR/NOVTdquEx1j" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.js" integrity="sha384-9Nhn55MVVN0/4OFx7EE5kpFBPsEMZxKTCnA+4fqDmg12eCTqGi6+BB2LjY8brQxJ" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script></head>
 
-This project is based on the paper <a href="https://cseweb.ucsd.edu//~viscomp/classes/cse274/fa21/readings/a193-kalantari.pdf">Learning-Based View Synthesis for Light Field Cameras</a> by Kalantari et al.  In this paper, the authors use a 2-stage neural network to synthesize images from non-input view directions in a light field camera.  In theory, this work could be used to increase the spatial resolution of consumer light field cameras while retaining the same angular resolution, by simply synthesizing the intermediate views.  Below, we give a brief synopsis of how this paper works.
+<h1> Introduction </h1>
+This project is based on the paper <a href="https://cseweb.ucsd.edu//~viscomp/classes/cse274/fa21/readings/a193-kalantari.pdf">Learning-Based View Synthesis for Light Field Cameras</a> by Kalantari et al.  In this paper, the authors use a 2-stage neural network to synthesize images from non-input view directions in a light field camera.  In theory, this work could be used to increase the spatial resolution of consumer light field cameras while retaining the same angular resolution, by simply synthesizing the intermediate views.
+
+<h1> Overview of the Original Paper </h1>
+Below, we give a brief synopsis of how this paper works.
 
 <h2> Architecture </h2>
 The neural network architecture in this paper consists of two CNNs, each with 4 convolutional layers and no fully-connected layers.  The network takes in the 4 corner views of an 8x8 angular resolution grid, as well as the (u, v) coordinates of the desired input view.  The full network learns to directly synthesize an image from the desired input view.
