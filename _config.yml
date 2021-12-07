@@ -1,2 +1,6 @@
 title: CSE 274 Final Project
 theme: jekyll-theme-cayman
+
+markdown: kramdown
+kramdown:
+    math_engine: katex
