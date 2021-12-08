@@ -125,13 +125,35 @@ In the original paper, there are also decent results for extrapolated views, tho
 </video>
 </p>
 
-Finally, I show results for images taken on a cellphone.  Since the original light field camera has a very small baseline and the views are very well-calibrated, it is clear that using cellphone images will not get perfect results on a network trained on the light field images.  However, the results still retain some quailty, and it is nonetheless interesting that one can synthesize these views at this quality from cellphone images.
+Finally, I show results for images taken on a cellphone.  Since the original light field camera has a very small baseline and the views are very well-calibrated, it is clear that using cellphone images will not get perfect results on a network trained on the light field images.  However, I did not expect the results to be this bad.  Nonetheless, let this be a lesson to anyone trying to train on calibrated images and test on uncalibrated (and unwarped) ones.
 
 <p style="text-align:center;">
-<video width="541" height="376" controls loop autoplay muted>
+<video width="480" height="354" controls loop autoplay muted>
   <source src="blphonefinal.mp4" type="video/mp4"/> 
 </video>
 </p>
 
 <h2> Conclusion </h2>
 I had a fun time implementing this paper, and I learned quite a bit about view synthesis and neural network implementation.  It was especially interesting to me to see places where the original paper may not hold up as well (e.g. the toilet brush scene above, or the phone images), since these results are often left out.  I am proud of my network's results, especially considering the storage/memory/execution limitations imposed by DataHub.
+
+<h2> Glitch Images </h2>
+I leave you with some of my favorite glitchy images from when I was trying to debug my network.
+<p style="text-align:center;">
+<table>
+  <tr>
+    <td>
+      <video width="361" height="251" controls loop autoplay muted>
+        <source src="dispfeat3.mp4" type="video/mp4"/> 
+      <!-- Your browser does not support the video tag. -->
+      </video>
+    </td>
+    <td>
+      <video width="480" height="354" controls loop autoplay muted>
+        <source src="blglitch.mp4" type="video/mp4"/> 
+      <!-- Your browser does not support the video tag. -->
+      </video>
+    </td>
+  </tr>
+</table>
+</p>
+
