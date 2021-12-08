@@ -8,11 +8,17 @@
 <h1> Introduction </h1>
 This project is based on the paper <a href="https://cseweb.ucsd.edu//~viscomp/classes/cse274/fa21/readings/a193-kalantari.pdf">Learning-Based View Synthesis for Light Field Cameras</a> by Kalantari et al.  In this paper, the authors use a 2-stage neural network to synthesize images from non-input view directions in a light field camera.  In theory, this work could be used to increase the spatial resolution of consumer light field cameras while retaining the same angular resolution, by simply synthesizing the intermediate views.
 
+<p style="text-align:center;">
+<video width="541" height="376" controls loop autoplay muted>
+  <source src="flfinal.mp4" type="video/mp4"/> 
+</video>
+</p>
+
 <h1> Overview of the Original Paper </h1>
-Below, we give a brief synopsis of how this paper works.
+Below, I give a brief synopsis of how this paper works.
 
 <h2> Architecture </h2>
-The neural network architecture in this paper consists of two CNNs, each with 4 convolutional layers and no fully-connected layers.  The network takes in the 4 corner views of an 8x8 angular resolution grid, as well as the \\( (u, v) \\) coordinates of the desired input view.  The full network learns to directly synthesize an image from the desired input view.
+The neural network architecture in this paper consists of two CNNs, each with 4 convolutional layers and no fully-connected layers.  The network takes in the 4 corner views of an 8x8 angular resolution grid, as well as the \\( (u, v) \\) coordinates of the desired input view.  The full network learns to directly synthesize an image from the desired input view.  In all results shown here (and most in the original paper), there is a square in the upper left corner that indicates which view the network is synthesizing (in light gray) and which views the network took as input from the light field image (in orange).
 
 <p style="text-align:center;"><img src="viewlayout.png" width=215 height=215/></p>
 
@@ -38,10 +44,18 @@ The first CNN is called a "disparity estimator", and it aims to roughly estimate
 </table>
 </p>
 
+I also show the output of the disparity network for a single view here.  Note that in this disparity output, close objects are bright and far objects are dark.  This is because closer objects shift more between the 4 views, and further objects shift less.  This is a good sign (during implementation) that the network is able to handle objects at different depths.
+
+<p style="text-align:center;"><img src="output_disp.png"/></p>
+
 <h3> Color Predictor </h3>
-The color predictor network uses the disparity estimator output, the 4 input images, and the \\( (u, v) \\) coordinates of the target view to determine the 3-channel output view.  To create the features for this network, we use the disparity estimator output to <i>forward warp</i> the 4 (color) input views.  This is given by the equation \\( \bar{L}\_{p_i}(s) = L_{p_i}\[s + (p_i - q)D_q(s)\] \\), where \\( D_q(s) \\) gives the disparity estimator's output at pixel \\(s\\).  The warped views are then concatenated with the \\( (u, v) \\) target view coordinates as well as the disparity output, giving a \\( 3*4 + 2 + 1 = 15 \\) channel input.  The layers in this step are the same as in the disparity estimator, but the input layer takes in 15 channels rather than 200.  Putting these details together, we show the final network:
+The color predictor network uses the disparity estimator output, the 4 input images, and the \\( (u, v) \\) coordinates of the target view to determine the 3-channel output view.  To create the features for this network, we use the disparity estimator output to <i>forward warp</i> the 4 (color) input views.  This is given by the equation \\( \bar{L}\_{p_i}(s) = L_{p_i}\[s + (p_i - q)D_q(s)\] \\), where \\( D_q(s) \\) gives the disparity estimator's output at pixel \\(s\\).  The warped views are then concatenated with the \\( (u, v) \\) target view coordinates as well as the disparity output, giving a \\( 3*4 + 2 + 1 = 15 \\) channel input.  The layers in this step are the same as in the disparity estimator, but the input layer takes in 15 channels rather than 200.  Putting these details together, here is the final network:
 
 <p style="text-align:center;"><img src="network.png"/></p>
+
+At one point in my implementation I implemented the forward warping incorrectly between the networks (I swapped angular coordinates in some places but not in others), and it was clear from the disparity output, because the first network was essentially learning the identity mapping, but had a few artifacts on the edges of objects.  I show this buggy output below.
+
+<p style="text-align:center;"><img src="bad_disp.png"/></p>
 
 <h2> Other Paper Details </h2>
 In the original paper, training occurs on 60x60 patches, with batch size 20.  They use the L2 loss, and use ADAM to update the weights of the network.  Additionally, since the warp operations will likely try to read values between pixels if implemented naively, they use bicubic interpolation to sample the all images that are warped (forward or backward).  Backpropagation through the bicubic interpolation step during the forward warp is performed numerically.
@@ -69,12 +83,18 @@ I trained for a few days, until the network seemed to have reached its lowest te
 <p style="text-align:center;"><img src="losses.png"/></p>
 
 <h2> Other Implementation Details </h2>
-In the results I presented in class, I mentioned that I was having issues with low saturation in my output images.  After a student commented that this could likely be a bug related to gamma correction, I looked at the paper authors' code to find out what type of tone correction I would have to apply.  The result is that my results were correct in my presentation, but needed to be gamma corrected by \\( \gamma = 1.5\\) and also saturation-scaled by 1.5.  Thus my images in this report are more color-correct and more highly-saturated than those from my presentation.  In addition, the images shown below are from versions of the network trained further than the images in the presentation, and thus there will likely be fewer artifacts overall.
+In the results I presented in class, I mentioned that I was having issues with low saturation in my output images.  After a student commented that this could likely be a bug related to gamma correction, I looked at the paper authors' code to find out what type of tone correction I would have to apply.  The result is that my results were mostly correct in my presentation, but indeed needed to be gamma corrected by \\( \gamma = 1.5\\) and also saturation-scaled by 1.5.  Thus my images in this report are more color-correct than those from my presentation.  In addition, the images shown in the results section are from versions of the network trained further than the images in the presentation, and thus there will likely be fewer artifacts overall.  Below I show the desaturated flower video I presented, for reference; you'll find the improved results further down.
+
+<p style="text-align:center;">
+<video width="541" height="376" controls loop autoplay muted>
+  <source src="flviews2.mp4" type="video/mp4"/> 
+</video>
+</p>
 
 For the forward and backward image warps, I utilized Pytorch's built-in meshgrid and grid_sample functions.  This allowed me to create a uniform grid of \\( (x, y) \\) points, add the necessary offsets to each coordinate based on the type of warp, and then sample the bicubic interpolated input images using the determined grid.  Additionally, since both of these are Pytorch functions, I was able to use Pytorch's default gradients for each of these functions, thus abstracting away the messy technical details involved in finding numerical gradients for bicubic interpolation.
 
 <h1> Results </h1>
-Finally, we examine the results.  First, here are the videos of my network cycling through every synthesized input view on the original Flower1.png light field image.
+Finally, we examine the results.  First, here are the videos of my network cycling through every synthesized input view on a flower light field image.
 
 <p style="text-align:center;">
 <video width="541" height="376" controls loop autoplay muted>
@@ -82,7 +102,7 @@ Finally, we examine the results.  First, here are the videos of my network cycli
 </video>
 </p>
 
-We also show results circling around the edges for several more light fields.  Note that for some scenes, the occlusion is too difficult (here, the brush scene fails to give a convincing background).
+I also show results circling around the edges for several more light fields.  Note that for some scenes, the occlusion is too difficult (here, the brush scene fails to give a convincing background), likely due to the difficult occlusion boundary.
 
 <p style="text-align:center;">
 <table>
@@ -134,10 +154,10 @@ Finally, I show results for images taken on a cellphone.  Since the original lig
 </p>
 
 <h2> Conclusion </h2>
-I had a fun time implementing this paper, and I learned quite a bit about view synthesis and neural network implementation.  It was especially interesting to me to see places where the original paper may not hold up as well (e.g. the toilet brush scene above, or the phone images), since these results are often left out.  I am proud of my network's results, especially considering the storage/memory/execution limitations imposed by DataHub.
+I had a fun time implementing this paper, and I learned quite a bit about view synthesis and neural network implementation.  It was especially interesting to me to see places where the original paper may not hold up as well (e.g. the toilet brush scene above, or the phone images), since these results are often left out.  I am proud of my network's results, especially considering the storage/memory/execution limitations imposed by DataHub, and I think my experience will help me in implementing and understanding future papers related to light field imaging and view synthesis.
 
 <h2> Glitch Images </h2>
-I leave you with some of my favorite glitchy images from when I was trying to debug my network.
+As extra content, I leave you with some of my favorite glitchy videos from when I was trying to debug my network.
 <p style="text-align:center;">
 <table>
   <tr>
