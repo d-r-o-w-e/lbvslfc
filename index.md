@@ -148,7 +148,7 @@ I leave you with some of my favorite glitchy images from when I was trying to de
       </video>
     </td>
     <td>
-      <video width="480" height="354" controls loop autoplay muted>
+      <video width="361" height="251" controls loop autoplay muted>
         <source src="blglitch.mp4" type="video/mp4"/> 
       <!-- Your browser does not support the video tag. -->
       </video>
