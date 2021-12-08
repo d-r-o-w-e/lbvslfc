@@ -17,7 +17,7 @@ The neural network architecture in this paper consists of two CNNs, each with 4 
 <p style="text-align:center;"><img src="viewlayout.png" width=215 height=215/></p>
 
 <h3> Disparity Estimator </h3>
-The first CNN is called a "disparity estimator", and it aims to roughly estimate the disparity (a measure of the "motion" or "distance" between pixels in two camera views) as a 1-channel image.  Its input is 200 image features which we manually create before applying the network.  These features are intended to help the network see the disparity at each point in the image.  First, we <i>backward warp</i> the 4 input images (converted to grayscale); this step shifts each of the pixels in each input image by a predefined disparity level \\( d_l \\).  Thus we find a backwarped image \\( \bar{L}\_{p\_i}^{d\_l}(s) = L\_{p_i}\[s + (p_i - q)d_l\] \\), where \\(p_i\\) and \\( q \\) are the \\( (u, v) \\) coordinates of the input and target views, respectively.  We perform this for each of the 4 input views, and warp using 100 predefined disparity levels between -21 and 21.  Then, 100 features are found by averaging over the 4 views at each disparity level, and 100 features are found by taking the standard deviation of the 4 views at each disparity level.  We stack the 200 features into a 100 x h x w tensor.  Below, we show the disparity mean and standard deviation features for each disparity level.
+The first CNN is called a "disparity estimator", and it aims to roughly estimate the disparity (a measure of the "motion" or "distance" between pixels in two camera views) as a 1-channel image.  Its input is 200 image features which we manually create before applying the network.  These features are intended to help the network see the disparity at each point in the image.  First, we <i>backward warp</i> the 4 input images (converted to grayscale); this step shifts each of the pixels in each input image by a predefined disparity level \\( d_l \\).  Thus we find a backwarped image \\( \bar{L}\_{p\_i}^{d\_l}(s) = L\_{p_i}\[s + (p_i - q)d_l\] \\), where \\(p_i\\) and \\( q \\) are the \\( (u, v) \\) coordinates of the input and target views, respectively.  We perform this for each of the 4 input views, and warp using 100 predefined disparity levels between -21 and 21.  Then, 100 features are found by averaging over the 4 views at each disparity level, and 100 features are found by taking the standard deviation of the 4 views at each disparity level.  We stack the 200 features into a 100 x h x w tensor.  Below, we show the disparity mean and standard deviation features for each disparity level.  Notice that at different points in the scene, the videos line up at different disparity levels.  This information can be used by the network to determine the disparity at those points.
 
 <p style="text-align:center;">
 <table>
@@ -82,14 +82,14 @@ Finally, we examine the results.  First, here are the videos of my network cycli
 </video>
 </p>
 
-We also show results circling around the edges for several more light fields (Flower1.png, Seahorse.png).
+We also show results circling around the edges for several more light fields.  Note that for some scenes, the occlusion is too difficult (here, the brush scene fails to give a convincing background).
 
 <p style="text-align:center;">
 <table>
   <tr>
     <td>
       <video width="361" height="251" controls loop autoplay muted>
-        <source src="flfinal.mp4" type="video/mp4"/> 
+        <source src="bffinal.mp4" type="video/mp4"/> 
       <!-- Your browser does not support the video tag. -->
       </video>
     </td>
@@ -100,30 +100,38 @@ We also show results circling around the edges for several more light fields (Fl
       </video>
     </td>
   </tr>
+  <tr>
+    <td>
+      <video width="361" height="251" controls loop autoplay muted>
+        <source src="tbfinal.mp4" type="video/mp4"/> 
+      <!-- Your browser does not support the video tag. -->
+      </video>
+    </td>
+    <td>
+      <video width="361" height="251" controls loop autoplay muted>
+        <source src="rxfinal.mp4" type="video/mp4"/> 
+      <!-- Your browser does not support the video tag. -->
+      </video>
+    </td>
+  </tr>
 </table>
 </p>
 
-In the original paper, there are also decent results for extrapolated views, though these tend to have lots of artifacts around occlusion boundaries.  Here, I show some extrapolated results for my implementation of the network.
+In the original paper, there are also decent results for extrapolated views, though these tend to have lots of artifacts.  Here, I show some extrapolated results for my implementation of the network, which has even further artifacts than the paper (and cannot really handle views outside its main range), suggesting that my implementation has strongly overfit to the original window coordinates.
 
-Extrapolated Video
-<!-- <video width="541" height="376" controls>
-  <source src="movie.mp4" type="video/mp4"/> 
-Your browser does not support the video tag.
-</video> -->
-
-Extrapolated Video
-<!-- <video width="541" height="376" controls>
-  <source src="movie.mp4" type="video/mp4"/> 
-Your browser does not support the video tag.
-</video> -->
+<p style="text-align:center;">
+<video width="541" height="376" controls loop autoplay muted>
+  <source src="flextfinal.mp4" type="video/mp4"/> 
+</video>
+</p>
 
 Finally, I show results for images taken on a cellphone.  Since the original light field camera has a very small baseline and the views are very well-calibrated, it is clear that using cellphone images will not get perfect results on a network trained on the light field images.  However, the results still retain some quailty, and it is nonetheless interesting that one can synthesize these views at this quality from cellphone images.
 
-Phone Image Video
-<!-- <video width="541" height="376" controls>
-  <source src="movie.mp4" type="video/mp4"/> 
-Your browser does not support the video tag.
-</video> -->
+<p style="text-align:center;">
+<video width="541" height="376" controls loop autoplay muted>
+  <source src="blphonefinal.mp4" type="video/mp4"/> 
+</video>
+</p>
 
 <h2> Conclusion </h2>
-I had a fun time implementing this paper, and I learned quite a bit about view synthesis and neural network implementation.  I am proud of my network's results, especially considering the storage/memory/execution limitations imposed by DataHub.
+I had a fun time implementing this paper, and I learned quite a bit about view synthesis and neural network implementation.  It was especially interesting to me to see places where the original paper may not hold up as well (e.g. the toilet brush scene above, or the phone images), since these results are often left out.  I am proud of my network's results, especially considering the storage/memory/execution limitations imposed by DataHub.
