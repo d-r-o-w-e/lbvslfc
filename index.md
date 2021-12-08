@@ -78,7 +78,7 @@ My implementation differed from the original paper slightly, as it used differen
 </ul>
 
 <h2> Training </h2>
-I trained for a few days, until the network seemed to have reached its lowest test loss.  The train/test loss graphs are shown below.  Note that the scales are different -- for the training loss, I did not normalize by the number of samples, and the training loss is sampled more frequently than the test loss, but the progress of the curve is nonetheless clear.
+I trained for a few days, until the network seemed to have reached (and passed) its lowest test loss (I use the minimum test loss weights for all non-bug results shown).  The train/test loss graphs are shown below.  Note that the scales are different -- for the training loss, I did not normalize by the number of samples, and the training loss is sampled more frequently than the test loss, but the progress of the curve is nonetheless clear.
 
 <p style="text-align:center;"><img src="losses.png"/></p>
 
